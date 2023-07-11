@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 void main() {
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -10,14 +9,14 @@ void main() {
 
 class HomePage extends StatefulWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  EnteredValues createState() => EnteredValues();
 }
 
-class _HomePageState extends State<HomePage> {
+class EnteredValues extends State<HomePage> {
   String totalAmount = '';
   String taxPercentage = '';
   int numFriends = 1;
-  int tipPercentage = 0;
+  int tip = 0;
 
   void enteredTotalAmount(String value) {
     setState(() {
@@ -33,16 +32,16 @@ class _HomePageState extends State<HomePage> {
 
   void incrementTip() {
     setState(() {
-      if (tipPercentage < 100) {
-        tipPercentage++;
+      if (tip < 100) {
+        tip++;
       }
     });
   }
 
   void decrementTip() {
     setState(() {
-      if (tipPercentage > 0) {
-        tipPercentage--;
+      if (tip > 0) {
+        tip--;
       }
     });
   }
@@ -127,13 +126,13 @@ class _HomePageState extends State<HomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Text 1',
+                              '${numFriends}',
                             ),
                             Text(
-                              'Text 2',
+                              '${taxPercentage} %',
                             ),
                             Text(
-                              'Text 3',
+                              '${tip}',
                             ),
                           ],
                         ),
@@ -182,17 +181,19 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             FloatingActionButton(
                               onPressed: incrementTip,
+                              backgroundColor: Colors.deepOrangeAccent,
                               child: Icon(Icons.add),
                             ),
                             SizedBox(width: 20.0),
                             Align(
                               alignment: Alignment.topCenter,
                               child: Text(
-                                ' $tipPercentage',
+                                ' $tip',
                               ),
                             ),
                             FloatingActionButton(
                               onPressed: decrementTip,
+                              backgroundColor: Colors.deepOrangeAccent,
                               child: Icon(Icons.remove),
                             ),
                           ],
@@ -228,8 +229,10 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: GridView.count(
                 crossAxisCount: 3,
-                childAspectRatio: 3.0,
-                shrinkWrap: true,
+                childAspectRatio: 1.5,
+                padding: EdgeInsets.all(4.0),
+                mainAxisSpacing: 4.0,
+                crossAxisSpacing: 4.0,
                 children: [
                   dialpadButton('1', enteredTotalAmount),
                   dialpadButton('2', enteredTotalAmount),
@@ -249,17 +252,19 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 30,),
             ElevatedButton(
               onPressed: () {
-                // Handle Calculate Now button press
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Calculate(
-
+                    builder: (context) => CalculateNow(
+                      totalAmount: totalAmount,
+                      taxPercentage: taxPercentage,
+                      numFriends: numFriends,
+                      tip: tip,
                     ),
                   ),
                 );
               },
-              child: Text('CALCULATE NOW', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text('CALCULATE NOW'),
             ),
           ],
         ),
@@ -268,11 +273,115 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget dialpadButton(String value, Function(String) addToEnteredValue) {
-    return ElevatedButton(
+    return RawMaterialButton(
       onPressed: () {
         addToEnteredValue(value);
       },
-      child: Text(value),
+      shape: CircleBorder(),
+      fillColor: Colors.lightGreenAccent,
+      padding: EdgeInsets.all(9.0),
+      child: Text(
+        value,
+        style: TextStyle(
+          fontSize: 20.0,
+          color: Colors.black,
+          fontWeight: FontWeight.bold
+        ),
+      ),
     );
+  }
+}
+
+class CalculateNow extends StatelessWidget {
+  final String totalAmount;
+  final String taxPercentage;
+  final int numFriends;
+  final int tip;
+
+  const CalculateNow({
+    Key? key,
+    required this.totalAmount,
+    required this.taxPercentage,
+    required this.numFriends,
+    required this.tip,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double finalResult = calculateFinalResult();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Bill Split Result'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.only(left: 30,right: 30),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Center(
+            child: SingleChildScrollView(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Column(
+                  children: [
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        'Total Amount: $totalAmount',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                      ),
+                    ),
+                    SizedBox(height: 20,),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        'Tip: $tip',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                      ),
+                    ),
+                    SizedBox(height: 20,),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        'Tax Percentage: $taxPercentage',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                      ),
+                    ),
+                    SizedBox(height: 20,),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        'Number of Friends: $numFriends',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                      ),
+                    ),
+                    SizedBox(height: 20,),
+                    Text(
+                      'The Money Each Should Pay: $finalResult',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24,color: Colors.red),
+                    ),
+                    SizedBox(height: 30,),
+                    ElevatedButton(onPressed: (){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                          builder: (context) =>HomePage()));
+                    }, child: Text('CALCULATE AGAIN',style: TextStyle(fontWeight: FontWeight.bold),))
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  double calculateFinalResult() {
+    double total = double.tryParse(totalAmount) ?? 0;
+    double tax = double.tryParse(taxPercentage) ?? 0;
+    double result = (((total * tax) / 100) + tip + total) / numFriends;
+
+    return result;
   }
 }
